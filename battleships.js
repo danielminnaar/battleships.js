@@ -199,7 +199,7 @@ function mouseMove(x, y) {
 		if (block != null){
 			if (mouseIsDown && selectedShip != null){ // TODO: CAUSING INFINITE LOOP, FIX ALGORITHM
 				
-				drawDeployableShip(block.x, block.y, selectedShip.blocks.length);
+				//drawDeployableShip(block.x, block.y, selectedShip.blocks.length);
 			}
 			else {
 				var shipBlock = getShipBlock(block.x, block.y);
