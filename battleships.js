@@ -6,6 +6,8 @@ var shipList_dragItem = null;
 var shipLists = []; // Ships in shipList
 var gridShips = []; // Ships on grid
 var deployBlocks = [];
+var selectedShip = null;
+var mouseIsDown = false;
 
 $(function() {
 	init();
@@ -45,9 +47,18 @@ function init() {
  		shipList_mouseup();
  	});
 
+ 	$(document).mousedown(function(event){
+    	mouseDown(event.clientX, event.clientY);
+	});
+
 	$(document).mousemove(function(event){
     	mouseMove(event.clientX, event.clientY);
 	});
+
+	$(document).mouseup(function(event){
+    	mouseUp(event.clientX, event.clientY);
+	});
+
 
 	mapShipListItems(); // construct a list of ship objects from shipList div
 }
@@ -89,14 +100,40 @@ function shipList_drag(uiItem) {
 	$('body').css('cursor', 'pointer');
 }
 
+function removeShipFromGrid(ship){
+	for(var i=0;i<gridShips.length;i++){
+		if(gridShips[i].id == ship.id) {
+			gridShips.splice(i, 1);
+			drawGridShips(); // update the grid
+		}
+	}
+}
+
+function addShipToGrid(ship){
+	ship.id = guid();
+	gridShips[gridShips.length] = ship;
+	drawGridShips();
+}
+
+function guid() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+    s4() + '-' + s4() + s4() + s4();
+}
+
 function shipList_mouseup() {
+
 	if(shipList_dragItem != null && deployBlocks != null){
 		var startShipBlock = deployBlocks.sort(function(a,b){return (a.x - b.x);})[0]; // find the block with the left most coordinates
 		shipList_dragItem.x = startShipBlock.x;
 		shipList_dragItem.y = startShipBlock.y;
 		shipList_dragItem.blocks = deployBlocks;
-		gridShips[gridShips.length] = shipList_dragItem;
-		drawGridShips();
+		addShipToGrid(shipList_dragItem);
+		
 		$("#" + shipList_dragItem.imgId.toString()).hide();
 		$("#" + shipList_dragItem.imgId.toString() + "br").hide();
 		deployBlocks = null;
@@ -115,6 +152,32 @@ function shipList_select(shipImg) {
 	$("#" + shipImg).css({'border':'1px solid #00FF00'});
 }
 
+function mouseUp(x, y) {
+	mouseIsDown = false;
+}
+
+function mouseDown(x, y) {
+	mouseIsDown = true;
+	if (selectedShip != null) { // remove the ship from the grid if it's selected (to redeploy?)
+		removeShipFromGrid(selectedShip);
+	}
+
+}
+
+function drawDeployableShip(x, y, blocksAmount){
+	var drawBlocks = getDeployableShipBlocks(x, y, blocksAmount, true); // Find the list of blocks we can draw to deploy the ship on the grid. 
+	if (drawBlocks != null){  
+		drawGridShips();
+		for(var i=0;i<drawBlocks.length;i++){
+			ctx.beginPath();
+			ctx.fillStyle="rgba(102, 255, 51, 0.4)";
+			ctx.fillRect(drawBlocks[i].x, drawBlocks[i].y, drawBlocks[i].width, drawBlocks[i].height);
+			ctx.stroke();	
+		}
+	}
+	deployBlocks = drawBlocks;
+}
+
 function mouseMove(x, y) {
 	
 	var x = x - canvas.getBoundingClientRect().left;
@@ -123,18 +186,7 @@ function mouseMove(x, y) {
 	if (shipList_dragItem != null) {
 		var block = getIntersectingBlock(x, y); 
 		if (block != null){
-			var drawBlocks = getDeployableShipBlocks(x, y, shipList_dragItem.blocks.length, true); // Find the list of blocks we can draw to deploy the ship on the grid. 
-			if (drawBlocks != null){  
-				drawGridShips();
-				for(var i=0;i<drawBlocks.length;i++){
-					
-					ctx.beginPath();
-					ctx.fillStyle="rgba(102, 255, 51, 0.4)";
-					ctx.fillRect(drawBlocks[i].x, drawBlocks[i].y, drawBlocks[i].width, drawBlocks[i].height);
-					ctx.stroke();	
-				}
-			}
-			deployBlocks = drawBlocks;
+			drawDeployableShip(x, y, shipList_dragItem.blocks.length);
 		}
 		else { 
 			deployBlocks = null;
@@ -145,20 +197,27 @@ function mouseMove(x, y) {
 		//allow the user to reshuffle existing ships
 		var block = getIntersectingBlock(x, y); 
 		if (block != null){
-			var shipBlock = getShipBlock(block.x, block.y);
-			if (shipBlock != null){
-				drawGridShips();
-				ctx.strokeStyle = "rgba(102, 255, 51, 0.99)";
-				ctx.strokeRect(shipBlock.x, shipBlock.y, shipBlock.width(), shipBlock.height());
-				$('body').css('cursor', 'pointer');
-				shipList_dragItem = null;
+			if (mouseIsDown && selectedShip != null){ // TODO: CAUSING INFINITE LOOP, FIX ALGORITHM
+				
+				drawDeployableShip(block.x, block.y, selectedShip.blocks.length);
 			}
-			else{
-				$('body').css('cursor', 'default');	
-				shipList_dragItem = null;
-				drawGridShips();
+			else {
+				var shipBlock = getShipBlock(block.x, block.y);
+				if (shipBlock != null){
+					selectedShip = shipBlock;
+					drawGridShips();
+					ctx.strokeStyle = "rgba(102, 255, 51, 0.99)";
+					ctx.strokeRect(shipBlock.x, shipBlock.y, shipBlock.width(), shipBlock.height());
+					$('body').css('cursor', 'pointer');
+					shipList_dragItem = null;
+				}
+				else{
+					selectedShip = null;
+					$('body').css('cursor', 'default');	
+					shipList_dragItem = null;
+					drawGridShips();
+				}
 			}
-
 		}
 	}
 
