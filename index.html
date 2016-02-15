@@ -1,0 +1,39 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Grid</title>
+  <meta name="description" content="The HTML5 Herald">
+  <meta name="author" content="SitePoint">
+  <script src="jquery-1.12.0.min.js"></script>
+  <script src="jquery-ui.min.js"></script>
+  <script src="battleships.js"></script>
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+  <img id="background" src="images/indianocean.jpg" style="display: none;">
+  <div id="shipList" style="float: left; border: 1px solid #000; width: 10%; height: 300px;">
+    <img id="ship2" src="images/battleship_sml.png" alt="small" style="border:1px solid #000" onmousedown="shipList_select('ship2');" />
+    <br id="ship2br">
+    <img id="ship3" src="images/battleship_mdm1.png" alt="medium1" style="border:1px solid #000" onmousedown="shipList_select('ship3');"/>
+    <br id="ship3br">
+    <img id="ship4" src="images/battleship_mdm2.png" alt="medium2" style="border:1px solid #000" onmousedown="shipList_select('ship4');"/>
+    <br id="ship4br">
+    <img id="ship5-1" src="images/battleship_lrg1.png" alt="large" style="border:1px solid #000" onmousedown="shipList_select('ship5-1');" />
+    <br id="ship5-1br">
+    <img id="ship5-2" src="images/battleship_lrg2.png" alt="large" style="border:1px solid #000" onmousedown="shipList_select('ship5-2');" />
+  </div>
+  <div>
+    <canvas id="bc" width="100" height="100">
+    </canvas>
+
+  </div>
+	
+</body>
+</html>
