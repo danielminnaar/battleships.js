@@ -154,6 +154,12 @@ function shipList_select(shipImg) {
 
 function mouseUp(x, y) {
 	mouseIsDown = false;
+	if (shipList_dragItem != null) {
+		shipList_dragItem.blocks = deployBlocks;
+		addShipToGrid(shipList_dragItem);
+		shipList_dragItem = null;
+		deployBlocks = null;
+	}
 }
 
 function mouseDown(x, y) {
@@ -186,6 +192,8 @@ function mouseMove(x, y) {
 	if (shipList_dragItem != null) {
 		var block = getIntersectingBlock(x, y); 
 		if (block != null){
+			shipList_dragItem.x = block.x;
+			shipList_dragItem.y = block.y;
 			drawDeployableShip(x, y, shipList_dragItem.blocks.length);
 		}
 		else { 
@@ -197,9 +205,9 @@ function mouseMove(x, y) {
 		//allow the user to reshuffle existing ships
 		var block = getIntersectingBlock(x, y); 
 		if (block != null){
-			if (mouseIsDown && selectedShip != null){ // TODO: CAUSING INFINITE LOOP, FIX ALGORITHM
-				
-				//drawDeployableShip(block.x, block.y, selectedShip.blocks.length);
+			if (mouseIsDown && selectedShip != null){ 
+				shipList_dragItem = selectedShip;
+				drawDeployableShip(block.x, block.y, selectedShip.blocks.length);
 			}
 			else {
 				var shipBlock = getShipBlock(block.x, block.y);
@@ -272,7 +280,7 @@ function getDeployableShipBlocks(startX, startY, blocks, deployHorizontally){
 function getIntersectingBlock(x, y) {
 	for(var i=0;i<gridBlocks.length;i++) {
 		var block = gridBlocks[i];
-		if ( (x > block.x && x < (block.x + block.width)) && (y > block.y && y < (block.y + block.height)) ){
+		if ( (x >= block.x && x <= (block.x + block.width)) && (y >= block.y && y <= (block.y + block.height)) ){
 			return block;
 		}
 	}
